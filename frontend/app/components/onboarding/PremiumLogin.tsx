@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   BrainCircuit, 
-  CheckCircle2, 
   Sparkles, 
   AlertCircle, 
   Mail, 
@@ -29,7 +28,7 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Spotlight coordinates
+  // Spotlight and Tilt variables
   const [spotlight, setSpotlight] = useState({ x: 0, y: 0 });
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
@@ -48,7 +47,6 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
     }
   }, [router]);
 
-  // Mouse reactive tilt and spotlight tracking
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -59,12 +57,12 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
       y: e.clientY - rect.top
     });
 
-    // 3D Tilt calculation (max 8 degrees tilt)
+    // 3D Tilt calculation (max 6 degrees tilt)
     const xOffset = e.clientX - rect.left - rect.width / 2;
     const yOffset = e.clientY - rect.top - rect.height / 2;
     setTilt({
-      x: -(yOffset / (rect.height / 2)) * 6,
-      y: (xOffset / (rect.width / 2)) * 6
+      x: -(yOffset / (rect.height / 2)) * 5,
+      y: (xOffset / (rect.width / 2)) * 5
     });
   };
 
@@ -84,110 +82,78 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
         await authApi.login(email, password);
       }
       
-      // Callback to trigger SuccessReveal scene animations
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Authentication failed. Please verify credentials.");
+      setError(err.response?.data?.detail || "Authentication failed. Please check credentials.");
       setLoading(false);
     }
   };
 
   if (!isActive) return null;
 
-  const features = [
-    { title: "Cashback Intelligence", desc: "Optimize card usage for maximum rewards." },
-    { title: "Budget Tracking", desc: "Set visual limits and monitor category spends." },
-    { title: "Savings Goals", desc: "Grow contributions for target purchases." },
-    { title: "Subscription Monitoring", desc: "Track renewals and detect recurring drafts." },
-    { title: "AI Financial Advisor", desc: "Get intelligence reports on your cash flow." }
-  ];
-
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-4 bg-[#020617] overflow-hidden">
-      {/* Animated luxury mesh gradients */}
-      <div className="absolute top-0 -left-10 w-[450px] h-[450px] bg-purple-900/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-0 -right-10 w-[500px] h-[500px] bg-indigo-900/20 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-950/10 rounded-full blur-[150px] pointer-events-none" />
+    <div className="relative min-h-screen w-full flex items-center justify-center p-4 bg-[#02040d] overflow-hidden">
+      {/* Dark Shifting Nebula Backgrounds */}
+      <div className="absolute top-0 -left-10 w-[450px] h-[450px] bg-purple-950/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 -right-10 w-[500px] h-[500px] bg-indigo-950/20 rounded-full blur-[130px] pointer-events-none" />
       
-      {/* Matrix grid overlays */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.008)_1px,transparent_1px)] bg-[size:45px_45px] opacity-40 pointer-events-none" />
-
-      {/* Floating particles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {["₹", "$", "%", "AI", "Unified", "+2.5%"].map((item, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ y: 0, opacity: 0.15 }}
-            animate={{ 
-              y: [-15, 15, -15], 
-              opacity: [0.15, 0.4, 0.15],
-              rotate: [0, 8, -8, 0]
-            }}
-            transition={{
-              duration: 5.5 + idx,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            style={{
-              position: "absolute",
-              top: `${12 + idx * 13}%`,
-              left: `${8 + idx * 14}%`,
-            }}
-            className="text-xs font-mono font-bold text-indigo-400/20"
-          >
-            {item}
-          </motion.div>
-        ))}
+      {/* Drifting subtle stars */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {Array.from({ length: 30 }).map((_, i) => {
+          const size = Math.random() * 2 + 1;
+          const top = Math.random() * 100;
+          const left = Math.random() * 100;
+          return (
+            <motion.div
+              key={i}
+              animate={{ opacity: [0.15, 0.45, 0.15] }}
+              transition={{ duration: 4 + Math.random() * 4, repeat: Infinity }}
+              style={{ width: size, height: size, top: `${top}%`, left: `${left}%` }}
+              className="absolute rounded-full bg-white/20 blur-[0.5px]"
+            />
+          );
+        })}
       </div>
 
-      <div className="relative z-10 w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-6">
+      {/* Grid constellations */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.005)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.005)_1px,transparent_1px)] bg-[size:50px_50px] opacity-30 pointer-events-none" />
+
+      {/* Main Layout Centered Content */}
+      <div className="relative z-10 w-full max-w-5xl flex flex-col lg:flex-row items-center justify-between gap-12 py-6">
         
-        {/* LEFT COLUMN: Brand typography & Statement */}
+        {/* Left Column: Minimal Brand Title */}
         <motion.div
-          initial={{ opacity: 0, x: -35 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7 }}
-          className="lg:col-span-6 space-y-6 text-left p-4"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="flex-1 space-y-6 text-left max-w-lg p-2"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-fuchsia-600 flex items-center justify-center border border-indigo-400/20 shadow-lg">
-              <BrainCircuit className="h-5.5 w-5.5 text-white" />
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-fuchsia-600 flex items-center justify-center border border-indigo-400/20 shadow-lg animate-pulse">
+              <BrainCircuit className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-widest text-white font-mono">FINSIGHT AI</span>
+            <span className="text-base font-bold tracking-widest text-white font-mono">FINSIGHT AI</span>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight">
               One Dashboard. <br />Every Transaction. <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400">
                 AI Powered.
               </span>
             </h1>
-            <p className="text-slate-400 text-xs uppercase tracking-widest font-mono">
-              Unifying Multi-Payment Ecosystems
+            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 font-mono mt-4 block">
+              Unified Financial Operating System
             </p>
-          </div>
-
-          {/* Features cards */}
-          <div className="space-y-3 pt-2">
-            {features.map((feat, idx) => (
-              <div key={idx} className="flex items-start gap-3.5 p-3 border border-slate-900 rounded-xl bg-slate-950/20 backdrop-blur-sm transition-all hover:bg-slate-950/40">
-                <CheckCircle2 className="w-4.5 h-4.5 text-indigo-400 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-slate-200">{feat.title}</h4>
-                  <p className="text-[11px] text-slate-400">{feat.desc}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </motion.div>
 
-        {/* RIGHT COLUMN: 3D Tilt Glassmorphic Card */}
+        {/* Right Column: Premium Form Card */}
         <motion.div
-          initial={{ opacity: 0, x: 35 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="lg:col-span-6 flex justify-center p-2"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.15 }}
+          className="flex-1 w-full max-w-md p-2"
         >
           <div 
             ref={cardRef}
@@ -195,21 +161,21 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
             onMouseLeave={handleMouseLeave}
             style={{
               transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-              transition: "transform 0.12s cubic-bezier(0.25, 1, 0.5, 1)"
+              transition: "transform 0.1s ease-out"
             }}
-            className="w-full max-w-md bg-[#0a0f1d]/50 border border-slate-800/80 rounded-2xl p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden group select-text"
+            className="w-full bg-[#070b16]/40 border border-white/5 rounded-2xl p-8 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group"
           >
-            {/* Spotlight Glow Layer */}
+            {/* Spotlight glow layer */}
             <div 
               className="pointer-events-none absolute -inset-px rounded-2xl opacity-100 transition duration-300" 
               style={{ 
-                background: `radial-gradient(280px circle at ${spotlight.x}px ${spotlight.y}px, rgba(129, 140, 248, 0.12), transparent 80%)` 
+                background: `radial-gradient(320px circle at ${spotlight.x}px ${spotlight.y}px, rgba(129, 140, 248, 0.12), transparent 85%)` 
               }} 
             />
 
             <div className="text-center mb-6">
-              <h2 className="text-xl font-black text-white tracking-widest uppercase">
-                {isRegister ? "Create Account" : "Access OS"}
+              <h2 className="text-lg font-black text-white tracking-widest uppercase">
+                {isRegister ? "Create Account" : "Access deck"}
               </h2>
             </div>
 
@@ -219,7 +185,7 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="mb-4 flex items-start gap-2.5 p-3 rounded-lg bg-rose-950/30 border border-rose-900/60 text-rose-300 text-[11px]"
+                  className="mb-4 flex items-start gap-2.5 p-3 rounded-lg bg-rose-950/30 border border-rose-900/60 text-rose-300 text-[10px]"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-500" />
                   <span>{error}</span>
@@ -228,7 +194,7 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
             </AnimatePresence>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Full Name */}
+              {/* Full Name (Register only) */}
               <AnimatePresence initial={false}>
                 {isRegister && (
                   <motion.div
@@ -251,7 +217,7 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         required={isRegister}
-                        className="w-full h-11 pl-10 pr-4 bg-[#050810]/70 border border-slate-800/80 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 rounded-xl text-xs text-white placeholder-slate-600 outline-none transition-all"
+                        className="w-full h-11 pl-10 pr-4 bg-[#05080f]/80 border border-white/5 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 rounded-xl text-xs text-white placeholder-slate-600 outline-none transition-all"
                       />
                     </div>
                   </motion.div>
@@ -273,7 +239,7 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full h-11 pl-10 pr-4 bg-[#050810]/70 border border-slate-800/80 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 rounded-xl text-xs text-white placeholder-slate-600 outline-none transition-all"
+                    className="w-full h-11 pl-10 pr-4 bg-[#05080f]/80 border border-white/5 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 rounded-xl text-xs text-white placeholder-slate-600 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -293,12 +259,12 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full h-11 pl-10 pr-4 bg-[#050810]/70 border border-slate-800/80 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 rounded-xl text-xs text-white placeholder-slate-600 outline-none transition-all"
+                    className="w-full h-11 pl-10 pr-4 bg-[#05080f]/80 border border-white/5 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 rounded-xl text-xs text-white placeholder-slate-600 outline-none transition-all"
                   />
                 </div>
               </div>
 
-              {/* Submit CTA */}
+              {/* CTA Action Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -317,19 +283,19 @@ export default function PremiumLogin({ isActive, onSuccess }: PremiumLoginProps)
 
             {/* Credentials tip */}
             {!isRegister && (
-              <div className="mt-4 p-2.5 rounded-xl bg-indigo-950/20 border border-indigo-900/40 text-[10px] text-indigo-300 flex gap-2 select-text">
+              <div className="mt-4 p-2.5 rounded-xl bg-indigo-950/20 border border-indigo-900/40 text-[9.5px] text-indigo-300 flex gap-2 select-text">
                 <Sparkles className="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold text-indigo-200">Demo Credentials:</span>
+                  <span className="font-bold text-indigo-200">Demo Account Details:</span>
                   <p className="font-mono mt-0.5 text-indigo-300/80">Email: demo@finsight.ai</p>
                   <p className="font-mono text-indigo-300/80">Password: password123</p>
                 </div>
               </div>
             )}
 
-            {/* Toggle */}
+            {/* Form Toggle */}
             <div className="mt-5 text-center text-xs text-slate-400">
-              {isRegister ? "Registered already?" : "No account yet?"}{" "}
+              {isRegister ? "Already registered?" : "New to FinSight?"}{" "}
               <button
                 onClick={() => {
                   setIsRegister(!isRegister);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -9,16 +9,11 @@ import {
   CreditCard, 
   Landmark, 
   ArrowLeftRight,
-  Wallet,
   Activity,
   Sparkles,
-  Percent,
-  AlertTriangle,
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight
+  Wallet
 } from "lucide-react";
-import { insightsApi, authApi, checkBackendHealth } from "../../lib/api";
+import { insightsApi, checkBackendHealth } from "../../lib/api";
 import { formatCurrency } from "../../lib/utils";
 
 interface SuccessRevealProps {
@@ -78,12 +73,12 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
     loadRealData();
 
     // Scene timeline transitions
-    const t10 = setTimeout(() => setStep(10), 1000); // 1.0s -> Scene 10
-    const t11 = setTimeout(() => setStep(11), 2000); // 2.0s -> Scene 11
-    const t12 = setTimeout(() => setStep(12), 2500); // 2.5s -> Scene 12
+    const t10 = setTimeout(() => setStep(10), 1000); // 1.0s -> Scene 10 (Ecosystem Reveal inside)
+    const t11 = setTimeout(() => setStep(11), 2000); // 2.0s -> Scene 11 (Logo navbar morph)
+    const t12 = setTimeout(() => setStep(12), 2500); // 2.5s -> Scene 12 (Dashboard count up)
     const tEnd = setTimeout(() => {
       router.push("/dashboard");
-    }, 3800); // 3.8s -> Handover to real /dashboard
+    }, 3800); // 3.8s -> Complete
 
     return () => {
       clearTimeout(t10);
@@ -116,10 +111,10 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
 
   // Mini nodes coordinates
   const miniNodes = [
-    { id: "gpay", icon: <Smartphone className="w-3.5 h-3.5 text-blue-400" /> },
-    { id: "phonepe", icon: <Smartphone className="w-3.5 h-3.5 text-purple-400" /> },
-    { id: "paytm", icon: <Smartphone className="w-3.5 h-3.5 text-sky-400" /> },
-    { id: "bhim", icon: <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400" /> },
+    { id: "gpay", icon: <Smartphone className="w-3.5 h-3.5 text-[#4285F4]" /> },
+    { id: "phonepe", icon: <Smartphone className="w-3.5 h-3.5 text-[#a78bfa]" /> },
+    { id: "paytm", icon: <Smartphone className="w-3.5 h-3.5 text-[#00b9f5]" /> },
+    { id: "bhim", icon: <ArrowLeftRight className="w-3.5 h-3.5 text-[#10b981]" /> },
     { id: "cards", icon: <CreditCard className="w-3.5 h-3.5 text-amber-500" /> },
     { id: "banks", icon: <Landmark className="w-3.5 h-3.5 text-indigo-400" /> }
   ];
@@ -140,23 +135,36 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
   const currentHealth = Math.round(stats.health * countProgress);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#F1F3F6] overflow-hidden">
+    <div className={`relative min-h-screen w-full flex items-center justify-center p-4 bg-[#F1F3F6] overflow-hidden transition-opacity duration-500 ${step === 12 && countProgress === 1 ? 'opacity-90' : 'opacity-100'}`}>
       
       {/* 1. ANIMATION SPACE LAYERS (For Scenes 9 & 10) */}
       {step <= 10 && (
-        <div className="absolute inset-0 bg-[#020617] z-30 flex items-center justify-center">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.18),rgba(2,6,23,1))]" />
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.006)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.006)_1px,transparent_1px)] bg-[size:45px_45px] opacity-40 pointer-events-none" />
+        <div className="absolute inset-0 bg-[#02040d] z-30 flex items-center justify-center">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.16),rgba(2,4,13,1))]" />
+          
+          {/* Faint stars */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {Array.from({ length: 20 }).map((_, i) => {
+              const size = Math.random() * 2 + 1;
+              return (
+                <div 
+                  key={i} 
+                  style={{ width: size, height: size, top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }} 
+                  className="absolute rounded-full bg-white/10" 
+                />
+              );
+            })}
+          </div>
 
-          {/* Radial shockwave rings */}
+          {/* Radial glow shockwaves */}
           <div className="absolute pointer-events-none flex items-center justify-center">
             {[0, 1].map((i) => (
               <motion.div
                 key={i}
-                initial={{ scale: 0.8, opacity: 0.6 }}
+                initial={{ scale: 0.8, opacity: 0.5 }}
                 animate={{ scale: 2.2, opacity: 0 }}
                 transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.7, ease: "easeOut" }}
-                className="absolute w-52 h-52 rounded-full border border-indigo-500/20"
+                className="absolute w-52 h-52 rounded-full border border-indigo-500/15"
               />
             ))}
           </div>
@@ -169,11 +177,11 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
           >
             {/* Glowing aura */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 blur-2xl opacity-75 animate-pulse" />
-            <div className="absolute inset-4 rounded-3xl bg-[#0b0f19]/90 border border-indigo-400/20 backdrop-blur-xl flex items-center justify-center z-10">
+            <div className="absolute inset-4 rounded-3xl bg-[#080d19]/95 border border-indigo-400/20 backdrop-blur-xl flex items-center justify-center z-10">
               <BrainCircuit className="w-16 h-16 text-indigo-200 animate-pulse" />
             </div>
 
-            {/* Ecosystem sub-nodes and lines (Scene 10) */}
+            {/* Ecosystem sub-nodes (Scene 10) - Orbiting with NO lines or node graphs */}
             <AnimatePresence>
               {step === 10 && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -185,34 +193,13 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
                         initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
                         animate={{ x: pos.x, y: pos.y, scale: 1, opacity: 1 }}
                         exit={{ x: 0, y: 0, scale: 0 }}
-                        transition={{ type: "spring", stiffness: 85, damping: 12, delay: idx * 0.06 }}
-                        className="absolute w-10 h-10 rounded-full bg-[#0b0f19] border border-slate-800 flex items-center justify-center shadow-lg"
+                        transition={{ type: "spring", stiffness: 80, damping: 12, delay: idx * 0.05 }}
+                        className="absolute w-10 h-10 rounded-full bg-[#080d19] border border-indigo-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.2)]"
                       >
                         {node.icon}
                       </motion.div>
                     );
                   })}
-
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                    {miniNodes.map((node, idx) => {
-                      const pos = getMiniNodePos(idx);
-                      return (
-                        <motion.line
-                          key={node.id}
-                          x1="80"
-                          y1="80"
-                          x2={80 + pos.x}
-                          y2={80 + pos.y}
-                          stroke="rgba(129, 140, 248, 0.4)"
-                          strokeWidth="1.5"
-                          strokeDasharray="4 4"
-                          initial={{ pathLength: 0 }}
-                          animate={{ pathLength: 1 }}
-                          transition={{ duration: 0.5, delay: 0.3 }}
-                        />
-                      );
-                    })}
-                  </svg>
                 </div>
               )}
             </AnimatePresence>
@@ -222,15 +209,13 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
           <div className="absolute bottom-16 text-center z-25">
             <AnimatePresence mode="wait">
               {step === 10 && (
-                <>
-                  <motion.h3
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 0.9, y: 0 }}
-                    className="text-xs font-bold font-mono tracking-widest text-indigo-300 uppercase"
-                  >
-                    "All Financial Systems Unified"
-                  </motion.h3>
-                </>
+                <motion.h3
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 0.85, y: 0 }}
+                  className="text-xs font-bold font-mono tracking-widest text-indigo-300 uppercase"
+                >
+                  "All Financial Systems Unified"
+                </motion.h3>
               )}
             </AnimatePresence>
           </div>
@@ -248,7 +233,6 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
               <div className="flex items-center gap-3">
                 {/* Logo target holder */}
                 <div className="h-10 w-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
-                  {/* Gliding logo landing spot */}
                   {step === 12 && (
                     <motion.div 
                       initial={{ scale: 0.8 }}
@@ -297,17 +281,16 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
               {/* C. THE GLIDING FINSIGHT LOGO (Scene 11) */}
               {step === 11 && (
                 <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-                  {/* Moving central logo to sidebar slot */}
                   <motion.div
                     initial={{ x: 0, y: 0, scale: 1.3 }}
                     animate={{ 
-                      x: "-38.5vw", // translate precisely to the sidebar logo container coordinates
+                      x: "-38.5vw", 
                       y: "-43.5vh", 
                       scale: 0.35 
                     }}
                     transition={{
-                      duration: 0.55,
-                      ease: [0.16, 1, 0.3, 1] // Apple Keynote dynamic cubic bezier ease
+                      duration: 0.5,
+                      ease: [0.16, 1, 0.3, 1] // Apple Keynote ease
                     }}
                     className="relative w-28 h-28 flex items-center justify-center"
                   >
@@ -324,7 +307,7 @@ export default function SuccessReveal({ isActive }: SuccessRevealProps) {
                   <motion.div
                     initial={{ y: -60, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.75, type: "spring", stiffness: 85, damping: 12 }}
+                    transition={{ delay: 0.65, type: "spring", stiffness: 85, damping: 12 }}
                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl p-4 shadow-lg flex items-center gap-3.5 border border-emerald-400/20"
                   >
                     <div className="h-9 w-9 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
