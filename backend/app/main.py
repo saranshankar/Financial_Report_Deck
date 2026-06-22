@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from .config import settings
 from .database import engine, Base, get_db
-from .api import auth, transactions, cashback, offers, insights, reconciliation, accounts
+from .api import auth, transactions, cashback, offers, insights, reconciliation, accounts, budgets, savings, subscriptions, timeline, search, reports
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +94,12 @@ app.include_router(offers.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(reconciliation.router, prefix="/api")
 app.include_router(accounts.router, prefix="/api")
+app.include_router(budgets.router, prefix="/api")
+app.include_router(savings.router, prefix="/api")
+app.include_router(subscriptions.router, prefix="/api")
+app.include_router(timeline.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
 
 @app.get("/")
 def read_root():

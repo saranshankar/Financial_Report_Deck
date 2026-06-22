@@ -6,7 +6,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from .gemini_service import GeminiService
-from ..models import CashbackRule, Transaction, Recommendation, ReconciliationLog, User
+from ..models import CashbackRule, Transaction, Recommendation, ReconciliationLog, User, Budget, SavingsGoal, Subscription
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +165,11 @@ class FinancialRecommendationAgent:
             Transaction.date >= thirty_days_ago
         ).all()
         
+        # Query additional platform modules
+        budgets = db.query(Budget).filter(Budget.user_id == user_id).all()
+        savings_goals = db.query(SavingsGoal).filter(SavingsGoal.user_id == user_id).all()
+        subscriptions = db.query(Subscription).filter(Subscription.user_id == user_id, Subscription.status == "ACTIVE").all()
+        
         if not transactions:
             return [
                 {
@@ -197,15 +202,22 @@ class FinancialRecommendationAgent:
         top_category = max(categories, key=categories.get) if categories else "None"
         top_cat_amt = categories.get(top_category, 0.0)
         
-        # Draft prompts for Gemini
+        # Draft summary components
         transactions_summary = f"Total spend: ₹{total_spend:.2f}. Total cashback earned: ₹{total_earned:.2f}. Potential cashback: ₹{total_potential:.2f}. Missed cashback: ₹{missed_cashback:.2f}."
         if top_category != "None":
             transactions_summary += f" Top spending category is '{top_category}' with ₹{top_cat_amt:.2f}."
         if upi_spend > 0:
             transactions_summary += f" UPI transaction volume: ₹{upi_spend:.2f}, representing a potential missed cashback of ₹{upi_potential:.2f}."
             
+        if budgets:
+            transactions_summary += " Budgets configured: " + ", ".join([f"{b.category}: limit ₹{b.limit_amount}" for b in budgets])
+        if savings_goals:
+            transactions_summary += " Savings goals tracked: " + ", ".join([f"{g.name}: target ₹{g.target_amount}, saved ₹{g.current_amount}" for g in savings_goals])
+        if subscriptions:
+            transactions_summary += " Active subscriptions: " + ", ".join([f"{s.name}: monthly cost ₹{s.monthly_cost}, renewal day {s.renewal_day}" for s in subscriptions])
+
         prompt = (
-            f"You are a Financial Recommendation Agent. Analyze the following user spending summary:\n"
+            f"You are a Financial Recommendation Agent. Analyze the following user financial summary:\n"
             f"{transactions_summary}\n\n"
             f"Generate exactly 3 smart actionable recommendations formatted as a JSON array of objects. "
             f"Each object must have the fields:\n"
@@ -228,26 +240,33 @@ class FinancialRecommendationAgent:
         # Heuristic Fallback Recommendations
         fallback_recs = []
         
-        # 1. Cashback optimization advice
+        # 1. Cashback optimization advice (Cashback Recommendation)
         if missed_cashback > 0:
             fallback_recs.append({
                 "title": "Maximize Cashback Opportunities",
-                "message": f"You missed out on ₹{missed_cashback:.2f} in cashback rewards this month. Switching from UPI or basic Debit to your best eligible Credit Cards could save this amount.",
+                "message": f"You missed out on ₹{missed_cashback:.2f} in cashback rewards this month. Switching from UPI to your best eligible Credit Cards on Food and Utilities could retrieve this margin.",
                 "recommendation_type": "CASHBACK",
                 "impact_amount": float(missed_cashback)
             })
             
-        # 2. UPI vs Credit Card advice
-        if upi_potential > 10.0:
-            fallback_recs.append({
-                "title": "Avoid UPI on High Spends",
-                "message": f"You spent ₹{upi_spend:.2f} using UPI this month. By switching utility bills and online shopping to your Axis Ace or SBI Cashback cards, you could save ₹{upi_potential:.2f} more.",
-                "recommendation_type": "SAVINGS",
-                "impact_amount": float(upi_potential)
-            })
-            
-        # 3. High category warning
-        if top_category != "None" and top_cat_amt > total_spend * Decimal("0.3"):
+        # 2. Budget Alert / Spending Insight
+        budget_warning_added = False
+        for b in budgets:
+            spent = categories.get(b.category, 0.0)
+            limit = float(b.limit_amount)
+            if limit > 0:
+                pct = (spent / limit) * 100
+                if pct >= 80:
+                    fallback_recs.append({
+                        "title": f"{b.category} Budget Alert",
+                        "message": f"Your spending in the '{b.category}' category has reached {pct:.1f}% of your ₹{limit} budget cap. Slow down spending to avoid overruns.",
+                        "recommendation_type": "EXPENSE_WARNING",
+                        "impact_amount": float(max(0.0, spent - limit))
+                    })
+                    budget_warning_added = True
+                    break
+
+        if not budget_warning_added and top_category != "None" and top_cat_amt > total_spend * Decimal("0.3"):
             fallback_recs.append({
                 "title": f"High Spending in {top_category}",
                 "message": f"Your expenses in the '{top_category}' category total ₹{top_cat_amt:.2f}, accounting for {(top_cat_amt/float(total_spend))*100:.1f}% of your budget. Consider setting a cap.",
@@ -255,8 +274,38 @@ class FinancialRecommendationAgent:
                 "impact_amount": 0.0
             })
             
-        if len(fallback_recs) < 3:
-            # Safe default
+        # 3. Savings Goal / Subscription waste recommendation
+        if subscriptions:
+            total_sub = sum(float(s.monthly_cost) for s in subscriptions)
+            fallback_recs.append({
+                "title": "Subscription Waste Audit",
+                "message": f"You have {len(subscriptions)} active subscription bills totaling ₹{total_sub:.2f}/mo. Audit streaming or SaaS accounts to capture unused leaks and save up to ₹499/mo.",
+                "recommendation_type": "SAVINGS",
+                "impact_amount": 499.0
+            })
+        elif savings_goals:
+            for g in savings_goals:
+                saved = float(g.current_amount)
+                target = float(g.target_amount)
+                if saved < target:
+                    remaining = target - saved
+                    fallback_recs.append({
+                        "title": f"Boost Savings for '{g.name}'",
+                        "message": f"You are at {saved/target*100:.1f}% of your target for '{g.name}'. Deposit ₹2,000 this month to maintain your timeline.",
+                        "recommendation_type": "SAVINGS",
+                        "impact_amount": 2000.0
+                    })
+                    break
+        else:
+            fallback_recs.append({
+                "title": "Establish an Emergency Goal",
+                "message": "Create a new Savings Goal on FinSight AI to organize funds and monitor progress towards your target.",
+                "recommendation_type": "SAVINGS",
+                "impact_amount": 10000.0
+            })
+            
+        # Ensure we always have exactly 3 recommendations
+        while len(fallback_recs) < 3:
             fallback_recs.append({
                 "title": "Review Active Bank Offers",
                 "message": "Check our cashback rules database regularly. We identified Swiggy, Swiggy-HDFC, and Amazon Prime offers that match your spending patterns.",
@@ -264,7 +313,7 @@ class FinancialRecommendationAgent:
                 "impact_amount": 100.0
             })
             
-        return fallback_recs
+        return fallback_recs[:3]
 
 
 class ReconciliationAgent:

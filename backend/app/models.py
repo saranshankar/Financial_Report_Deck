@@ -160,6 +160,17 @@ class SavingsGoal(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="savings_goals")
+    contributions = relationship("GoalContribution", back_populates="goal", cascade="all, delete-orphan")
+
+class GoalContribution(Base):
+    __tablename__ = "goal_contributions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    goal_id = Column(UUID(as_uuid=True), ForeignKey("savings_goals.id", ondelete="CASCADE"), nullable=False)
+    amount = Column(Numeric(12, 2), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    goal = relationship("SavingsGoal", back_populates="contributions")
 
 class Subscription(Base):
     __tablename__ = "subscriptions"

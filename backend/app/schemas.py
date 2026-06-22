@@ -266,3 +266,36 @@ class Subscription(SubscriptionBase):
 
     class Config:
         from_attributes = True
+
+# GoalContribution schemas
+class GoalContributionBase(BaseModel):
+    goal_id: UUID
+    amount: Decimal
+
+class GoalContributionCreate(GoalContributionBase):
+    pass
+
+class GoalContribution(GoalContributionBase):
+    id: UUID
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# TimelineEvent schema
+class TimelineEvent(BaseModel):
+    id: str
+    type: str  # TRANSACTION, BUDGET_ALERT, GOAL_CONTRIBUTION, SUBSCRIPTION_RENEWAL, CASHBACK_EARNED, CASHBACK_MISSED
+    title: str
+    description: str
+    amount: Optional[Decimal] = None
+    date: datetime
+    status: Optional[str] = "INFO"  # INFO, WARNING, SUCCESS
+
+# Global Search schema
+class GlobalSearchResponse(BaseModel):
+    transactions: List[Any]
+    offers: List[Any]
+    subscriptions: List[Any]
+    accounts: List[Any]
+
