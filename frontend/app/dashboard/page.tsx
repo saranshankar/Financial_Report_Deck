@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Upload,
   RefreshCw,
+  Loader2,
   Plus,
   Clock,
   ShieldCheck,
@@ -123,9 +124,16 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      // Parallel retrieval of health checks, user details, dashboard aggregates and module analytics
-      const [health, userInfo, dashboardInfo, budgetsInfo, savingsInfo, subsInfo, timelineInfo] = await Promise.all([
-        checkBackendHealth(),
+      // 1. Verify connection first to fail fast if backend is completely offline
+      const health = await checkBackendHealth();
+      if (health.status !== "ONLINE") {
+        setError(health.reason || "Backend server is unavailable. Please start the FastAPI server.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Fetch all modules in parallel using Promise.allSettled so one crash doesn't break the dashboard
+      const [userResult, dashboardResult, budgetsResult, savingsResult, subsResult, timelineResult] = await Promise.allSettled([
         authApi.getMe(),
         insightsApi.getDashboardData(),
         budgetsApi.getSummary(),
@@ -134,20 +142,56 @@ export default function Dashboard() {
         timelineApi.getTimeline()
       ]);
 
-      if (health.status !== "ONLINE") {
-        setError(health.reason || "Backend server is unavailable. Please start the FastAPI server.");
-        setLoading(false);
-        return;
+      // Handle user profile details
+      if (userResult.status === "fulfilled") {
+        setUser(userResult.value);
+      } else {
+        console.error("Failed to load user profile:", userResult.reason);
       }
 
-      setUser(userInfo);
-      setData(dashboardInfo);
-      setBudgetSummary(budgetsInfo);
-      setSavingsGoals(savingsInfo);
-      setSubscriptions(subsInfo);
-      setTimeline(timelineInfo);
+      // Handle dashboard aggregates
+      if (dashboardResult.status === "fulfilled") {
+        setData(dashboardResult.value);
+      } else {
+        console.error("Failed to load dashboard statistics:", dashboardResult.reason);
+      }
+
+      // Handle budgets summary
+      if (budgetsResult.status === "fulfilled") {
+        setBudgetSummary(budgetsResult.value);
+      } else {
+        console.error("Failed to load budgets metadata:", budgetsResult.reason);
+      }
+
+      // Handle savings goals
+      if (savingsResult.status === "fulfilled") {
+        setSavingsGoals(savingsResult.value);
+      } else {
+        console.error("Failed to load savings targets:", savingsResult.reason);
+      }
+
+      // Handle subscriptions list
+      if (subsResult.status === "fulfilled") {
+        setSubscriptions(subsResult.value);
+      } else {
+        console.error("Failed to load active subscriptions list:", subsResult.reason);
+      }
+
+      // Handle timeline activities
+      if (timelineResult.status === "fulfilled") {
+        setTimeline(timelineResult.value);
+      } else {
+        console.error("Failed to load activities timeline:", timelineResult.reason);
+      }
+
+      // Trigger blocking ServiceOffline fallback page if both me and dashboard stats fail
+      if (userResult.status === "rejected" && dashboardResult.status === "rejected") {
+        const primaryError = (dashboardResult.reason as Error)?.message || "Failed to retrieve core financial dashboard metrics.";
+        setError(primaryError);
+      }
+
     } catch (err: any) {
-      console.error("Failed to load dashboard data", err);
+      console.error("Failed to compile dashboard metadata", err);
       setError(err.message || "Failed to load dashboard data.");
     } finally {
       setLoading(false);
@@ -302,36 +346,35 @@ export default function Dashboard() {
   // Pre-process pie chart data
   const pieData = data?.spending_by_category.map(cat => ({
     name: cat.category,
-    value: parseFloat(cat.amount.toString()),
+    value: Number(cat.amount ?? 0),
     color: CATEGORY_COLORS[cat.category as keyof typeof CATEGORY_COLORS] || CATEGORY_COLORS.Others
   })) || [];
 
   // Calculate dynamic components of health score
-  const totalCashback = data?.stats.total_cashback || 0;
-  const missedCashback = data?.stats.missed_cashback || 0;
-  console.log("missedCashback type:", typeof missedCashback, missedCashback);
-  const missedCashbackValue = Number(missedCashback ?? 0);
+  const totalCashback = Number(data?.stats.total_cashback ?? 0);
+  const missedCashback = Number(data?.stats.missed_cashback ?? 0);
+  const totalSpending = Number(data?.stats.total_spending ?? 0);
   
   // 1. Cashback Optimization (35%)
-  const cashbackOpt = totalCashback + missedCashbackValue > 0 
-    ? (totalCashback / (totalCashback + missedCashbackValue)) * 100 
+  const cashbackOpt = totalCashback + missedCashback > 0 
+    ? (totalCashback / (totalCashback + missedCashback)) * 100 
     : 85;
     
   // 2. Budget Discipline (25%)
   const budgetedCats = budgetSummary?.categories.filter(c => c.category !== "*") || [];
-  const underBudgetCats = budgetedCats.filter(c => c.spent <= c.limit);
+  const underBudgetCats = budgetedCats.filter(c => Number(c.spent ?? 0) <= Number(c.limit ?? 0));
   const budgetDiscipline = budgetedCats.length > 0 
     ? (underBudgetCats.length / budgetedCats.length) * 100 
     : 75;
 
   // 3. Savings Rate (25%)
-  const totalSaved = savingsGoals.reduce((sum, g) => sum + Number(g.current_amount), 0);
-  const totalTarget = savingsGoals.reduce((sum, g) => sum + Number(g.target_amount), 0);
+  const totalSaved = savingsGoals.reduce((sum, g) => sum + Number(g.current_amount ?? 0), 0);
+  const totalTarget = savingsGoals.reduce((sum, g) => sum + Number(g.target_amount ?? 0), 0);
   const savingsRate = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 60;
 
   // 4. Subscription Efficiency (15%)
-  const totalSubCost = subscriptions.reduce((sum, s) => sum + Number(s.monthly_cost), 0);
-  const totalSpend = data?.stats.total_spending || 1;
+  const totalSubCost = subscriptions.reduce((sum, s) => sum + Number(s.monthly_cost ?? 0), 0);
+  const totalSpend = totalSpending > 0 ? totalSpending : 1;
   const subRatio = totalSubCost / totalSpend;
   const subEfficiency = subRatio > 0.15 ? 65 : subRatio > 0.08 ? 80 : 95;
 
@@ -499,8 +542,8 @@ export default function Dashboard() {
                             AI Diagnostic Insight
                           </h4>
                           <p className="text-[11px] text-slate-600 leading-normal font-semibold">
-                            {missedCashbackValue > 0 
-                              ? `You missed ₹${missedCashbackValue.toFixed(0)} in rewards this month. Aligning your UPI payments to the optimal cards can capture this leaked margin.` 
+                            {missedCashback > 0 
+                              ? `You missed ₹${missedCashback.toFixed(0)} in rewards this month. Aligning your UPI payments to the optimal cards can capture this leaked margin.` 
                               : "Amazing cashback optimization! You are capturing 100% of available cashback deals this month."}
                           </p>
                         </div>
