@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import EcosystemIntro from "./EcosystemIntro";
@@ -12,7 +12,27 @@ type OnboardingPhase = "intro" | "login" | "success";
 export default function IntroSequence() {
   const [phase, setPhase] = useState<OnboardingPhase>("intro");
 
+  // Determine if user has visited onboarding before
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hasVisited = localStorage.getItem("onboarding_visited") === "true";
+      if (hasVisited) {
+        setPhase("login");
+      }
+    }
+  }, []);
+
   const handleSkip = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("onboarding_visited", "true");
+    }
+    setPhase("login");
+  };
+
+  const handleIntroComplete = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("onboarding_visited", "true");
+    }
     setPhase("login");
   };
 
@@ -36,17 +56,17 @@ export default function IntroSequence() {
         )}
       </AnimatePresence>
 
-      {/* RENDER THE ACTIVE PHASE COMPONENT */}
+      {/* RENDER THE ACTIVE PHASE */}
       <div className="w-full h-full min-h-screen">
-        {/* Phase 1: Ecosystem Introduction (Scenes 1-7) */}
+        {/* Phase 1: Ecosystem Introduction */}
         {phase === "intro" && (
           <EcosystemIntro 
             isActive={phase === "intro"} 
-            onComplete={() => setPhase("login")} 
+            onComplete={handleIntroComplete} 
           />
         )}
 
-        {/* Phase 2: Premium Login & Registration (Scene 8) */}
+        {/* Phase 2: Premium Login & Registration */}
         {phase === "login" && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -61,7 +81,7 @@ export default function IntroSequence() {
           </motion.div>
         )}
 
-        {/* Phase 3: Login Success Animations & Route (Scenes 9-12) */}
+        {/* Phase 3: Login Success Animations & Route */}
         {phase === "success" && (
           <SuccessReveal isActive={phase === "success"} />
         )}
