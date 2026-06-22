@@ -101,6 +101,46 @@ app.include_router(timeline.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc: StarletteHTTPException):
+    logger.error(f"HTTP error occurred: {exc.detail} (Status: {exc.status_code})")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "error": exc.detail,
+            "detail": exc.detail
+        }
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc: RequestValidationError):
+    logger.error(f"Validation error occurred: {exc.errors()}")
+    return JSONResponse(
+        status_code=400,
+        content={
+            "success": False,
+            "error": "Validation failed",
+            "detail": exc.errors()
+        }
+    )
+
+@app.exception_handler(Exception)
+async def catch_all_exception_handler(request, exc: Exception):
+    logger.error(f"Unhandled system error occurred: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "error": "Internal Server Error",
+            "detail": str(exc)
+        }
+    )
+
 @app.get("/")
 def read_root():
     return {
@@ -111,22 +151,28 @@ def read_root():
 
 @app.get("/api/health")
 def health_check(db: Session = Depends(get_db)):
+    from datetime import datetime
     try:
         db.execute(text("SELECT 1"))
         return {
             "status": "healthy",
             "database": "connected",
+            "timestamp": datetime.utcnow().isoformat(),
             "api": "online",
             "service": "FinSight AI",
             "version": "1.0.0"
         }
     except Exception as e:
         logger.error(f"Health check database error: {e}")
-        return {
-            "status": "unhealthy",
-            "database": "disconnected",
-            "api": "online",
-            "reason": str(e),
-            "service": "FinSight AI",
-            "version": "1.0.0"
-        }
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "unhealthy",
+                "database": "disconnected",
+                "timestamp": datetime.utcnow().isoformat(),
+                "api": "online",
+                "reason": str(e),
+                "service": "FinSight AI",
+                "version": "1.0.0"
+            }
+        )
