@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, .light {
+    --background: 210 20% 96%; /* #F1F3F6 */
+    --foreground: 222.2 47.4% 11.2%; /* #0F172A */
+
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+
+    --primary: 217 89% 55%; /* #2874F0 - Flipkart Blue */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%; /* #F1F5F9 */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%; /* #F1F5F9 */
+    --muted-foreground: 215.4 16.3% 46.9%; /* #64748B */
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%; /* #EF4444 - Error Red */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%; /* #E2E8F0 */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217 89% 55%;
+
+    --radius: 1rem; /* 16px - rounded-2xl */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom panel / card / sidebar classes for fintech light theme */
+.glass-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+.light .glass-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.glass-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1rem; /* 16px */
+}
+
+.light .glass-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  border-radius: 1rem; /* 16px */
+}
+
+.glass-card:hover {
+  border-color: #2874F0;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -4px rgba(40, 116, 240, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+.light .glass-card:hover {
+  border-color: #2874F0;
+  box-shadow: 0 12px 24px -4px rgba(40, 116, 240, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+.glass-sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  box-shadow: 2px 0 8px 0 rgba(0, 0, 0, 0.02);
+}
+
+.light .glass-sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+}
+
+/* Gradients text - Fintech High Contrast Mode */
+.text-gradient-purple {
+  @apply text-indigo-600 font-bold;
+}
+
+.text-gradient-green {
+  @apply text-emerald-600 font-bold;
+}
+
+.text-gradient-gold {
+  @apply text-amber-600 font-bold;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Category badge colors map - Fintech Light Mode (High Contrast) */
+.bg-food-dim { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.bg-travel-dim { background-color: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.bg-shopping-dim { background-color: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.bg-bills-dim { background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.bg-healthcare-dim { background-color: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
+.bg-education-dim { background-color: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+.bg-entertainment-dim { background-color: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; }
+.bg-investments-dim { background-color: #ecfeff; color: #155e75; border: 1px solid #a5f3fc; }
+.bg-others-dim { background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }

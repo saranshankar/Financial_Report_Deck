@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+**/node_modules/
+jspm_packages/
+web_resources/
+
+# Next.js Build and Cache
+.next/
+**/.next/
+out/
+build/
+
+# Python Virtual Environments
+venv/
+**/venv/
+.venv/
+**/ENV/
+env/
+**/env/
+ENV/
+bin/
+lib/
+include/
+pip-selfcheck.json
+
+# Python Cache and Compilation
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.tox/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.local.example
+!.env.example
+*.pem
+*.key
+*.cert
+*.pfx
+
+# IDEs, Editors & System Files
+.idea/
+.vscode/
+*.suo
+*.sln
+*.user
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
