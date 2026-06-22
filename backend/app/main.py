@@ -116,7 +116,9 @@ def health_check(db: Session = Depends(get_db)):
         return {
             "status": "healthy",
             "database": "connected",
-            "api": "online"
+            "api": "online",
+            "service": "FinSight AI",
+            "version": "1.0.0"
         }
     except Exception as e:
         logger.error(f"Health check database error: {e}")
@@ -124,5 +126,7 @@ def health_check(db: Session = Depends(get_db)):
             "status": "unhealthy",
             "database": "disconnected",
             "api": "online",
-            "reason": str(e)
+            "reason": str(e),
+            "service": "FinSight AI",
+            "version": "1.0.0"
         }

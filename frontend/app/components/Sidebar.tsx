@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { authApi } from "@/app/lib/api";
+import { LogoutModal } from "./ui/LogoutModal";
 
 interface SidebarProps {
   onLogout: () => void;
@@ -27,6 +29,7 @@ interface SidebarProps {
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -103,11 +106,7 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }: SidebarProps) {
 
         {/* Footer Logout Button */}
         <button
-          onClick={() => {
-            if (confirm("Are you sure you want to log out of FinSight AI?")) {
-              onLogout();
-            }
-          }}
+          onClick={() => setIsLogoutOpen(true)}
           suppressHydrationWarning={true}
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all duration-200"
         >
@@ -115,6 +114,15 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }: SidebarProps) {
           Logout
         </button>
       </aside>
+
+      <LogoutModal
+        isOpen={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={() => {
+          setIsLogoutOpen(false);
+          onLogout();
+        }}
+      />
     </>
   );
 }

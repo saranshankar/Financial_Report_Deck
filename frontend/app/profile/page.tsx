@@ -12,6 +12,7 @@ import { Button } from "../components/ui/Button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/Dialog";
+import { LogoutModal } from "../components/ui/LogoutModal";
 
 export default function Profile() {
   const router = useRouter();
@@ -22,12 +23,10 @@ export default function Profile() {
   const [resetLoading, setResetLoading] = useState(false);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [isConfirmResetOpen, setIsConfirmResetOpen] = useState(false);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const handleLogout = () => {
-    if (confirm("Are you sure you want to log out of FinSight AI?")) {
-      authApi.logout();
-      router.push("/login");
-    }
+    setIsLogoutOpen(true);
   };
 
   const loadData = async () => {
@@ -236,6 +235,15 @@ export default function Profile() {
           </Button>
         </DialogFooter>
       </Dialog>
+      <LogoutModal
+        isOpen={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={() => {
+          setIsLogoutOpen(false);
+          authApi.logout();
+          router.replace("/login");
+        }}
+      />
     </div>
   );
 }

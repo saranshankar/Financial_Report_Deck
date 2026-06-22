@@ -6,6 +6,7 @@ import { User, authApi, searchApi, GlobalSearchResponse } from "@/app/lib/api";
 import { Input } from "./ui/Input";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { LogoutModal } from "./ui/LogoutModal";
 
 interface TopbarProps {
   user: User | null;
@@ -15,6 +16,7 @@ interface TopbarProps {
 export default function Topbar({ user, onMenuToggle }: TopbarProps) {
   const router = useRouter();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   
   // Global Search States
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,10 +47,7 @@ export default function Topbar({ user, onMenuToggle }: TopbarProps) {
   };
 
   const handleDropdownLogout = () => {
-    if (confirm("Are you sure you want to log out of FinSight AI?")) {
-      authApi.logout();
-      router.push("/login");
-    }
+    setIsLogoutOpen(true);
   };
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([
@@ -384,6 +383,15 @@ export default function Topbar({ user, onMenuToggle }: TopbarProps) {
           )}
         </div>
       </div>
+      <LogoutModal
+        isOpen={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={() => {
+          setIsLogoutOpen(false);
+          authApi.logout();
+          router.replace("/login");
+        }}
+      />
     </header>
   );
 }

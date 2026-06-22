@@ -1,4 +1,4 @@
-+"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -15,17 +15,20 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // If user has token, auto redirect to dashboard
-    if (localStorage.getItem("token")) {
-      router.push("/dashboard");
+    if (localStorage.getItem("token") && !redirecting) {
+      setRedirecting(true);
+      router.replace("/dashboard");
     }
-  }, [router]);
+  }, [router, redirecting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || redirecting) return;
     setLoading(true);
     setError(null);
 
@@ -36,10 +39,10 @@ export default function Login() {
         await authApi.login(email, password);
       }
       
-      router.push("/dashboard");
+      setRedirecting(true);
+      router.replace("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.detail || "Authentication failed. Check your inputs.");
-    } finally {
       setLoading(false);
     }
   };
@@ -110,8 +113,10 @@ export default function Login() {
               />
             </div>
 
-            <Button type="submit" className="w-full h-11" loading={loading}>
-              {isRegister ? "Register" : "Sign In"}
+            <Button type="submit" className="w-full h-11" loading={loading || redirecting}>
+              {isRegister 
+                ? (loading || redirecting ? "Registering..." : "Register") 
+                : (loading || redirecting ? "Signing In..." : "Sign In")}
             </Button>
           </form>
 

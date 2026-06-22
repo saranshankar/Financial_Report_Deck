@@ -123,18 +123,10 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const health = await checkBackendHealth();
-      if (health.status !== "ONLINE") {
-        setError(health.reason || "Backend server is unavailable. Please start the FastAPI server.");
-        setLoading(false);
-        return;
-      }
-
-      const userInfo = await authApi.getMe();
-      setUser(userInfo);
-      
-      // Parallel retrieval of dashboard details and module diagnostics
-      const [dashboardInfo, budgetsInfo, savingsInfo, subsInfo, timelineInfo] = await Promise.all([
+      // Parallel retrieval of health checks, user details, dashboard aggregates and module analytics
+      const [health, userInfo, dashboardInfo, budgetsInfo, savingsInfo, subsInfo, timelineInfo] = await Promise.all([
+        checkBackendHealth(),
+        authApi.getMe(),
         insightsApi.getDashboardData(),
         budgetsApi.getSummary(),
         savingsApi.getAll(),
@@ -142,6 +134,13 @@ export default function Dashboard() {
         timelineApi.getTimeline()
       ]);
 
+      if (health.status !== "ONLINE") {
+        setError(health.reason || "Backend server is unavailable. Please start the FastAPI server.");
+        setLoading(false);
+        return;
+      }
+
+      setUser(userInfo);
       setData(dashboardInfo);
       setBudgetSummary(budgetsInfo);
       setSavingsGoals(savingsInfo);
@@ -190,10 +189,111 @@ export default function Dashboard() {
 
   if (loading && !data && !error) {
     return (
-      <div className="min-h-screen bg-[#F1F3F6] flex items-center justify-center relative">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2874F0]" />
-          <p className="text-sm font-semibold text-slate-500">Synthesizing Financial Intel...</p>
+      <div className="min-h-screen bg-[#F1F3F6] flex">
+        {/* Navigation Sidebar */}
+        <Sidebar onLogout={handleLogout} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+
+        {/* Main Panel Content Area */}
+        <div className="flex-1 md:pl-64 flex flex-col min-h-screen">
+          <Topbar user={user} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+
+          <main className="flex-1 p-6 space-y-6 z-10 max-w-7xl w-full mx-auto animate-pulse">
+            {/* Header Action Row Skeleton */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-4">
+              <div className="space-y-2">
+                <div className="h-7 w-56 bg-slate-250 rounded-lg" />
+                <div className="h-4 w-96 bg-slate-200 rounded-md" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-24 bg-slate-200 rounded-lg" />
+                <div className="h-9 w-36 bg-slate-200 rounded-lg" />
+                <div className="h-9 w-36 bg-slate-200 rounded-lg" />
+              </div>
+            </div>
+
+            {/* Hero Section Skeleton */}
+            <div className="h-40 rounded-2xl bg-gradient-to-r from-slate-200 to-slate-350 p-6 shadow-sm flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="h-6 w-48 bg-white/20 rounded-md" />
+                <div className="h-4 w-72 bg-white/20 rounded-md" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                <div className="bg-white/10 rounded-xl p-3 border border-white/5 backdrop-blur-sm space-y-1.5">
+                  <div className="h-3 w-16 bg-white/20 rounded" />
+                  <div className="h-6 w-24 bg-white/30 rounded-md" />
+                </div>
+                <div className="bg-white/10 rounded-xl p-3 border border-white/5 backdrop-blur-sm space-y-1.5">
+                  <div className="h-3 w-16 bg-white/20 rounded" />
+                  <div className="h-6 w-24 bg-white/30 rounded-md" />
+                </div>
+                <div className="bg-white/10 rounded-xl p-3 border border-white/5 backdrop-blur-sm space-y-1.5">
+                  <div className="h-3 w-16 bg-white/20 rounded" />
+                  <div className="h-6 w-24 bg-white/30 rounded-md" />
+                </div>
+                <div className="bg-white/10 rounded-xl p-3 border border-white/5 backdrop-blur-sm space-y-1.5">
+                  <div className="h-3 w-16 bg-white/20 rounded" />
+                  <div className="h-6 w-24 bg-white/30 rounded-md" />
+                </div>
+              </div>
+            </div>
+
+            {/* Grid Layout Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column Blocks */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-64 flex flex-col justify-between">
+                  <div className="h-5 w-32 bg-slate-200 rounded-md" />
+                  <div className="h-40 bg-slate-100 rounded-xl flex items-end justify-between p-4 space-x-2">
+                    {[...Array(12)].map((_, i) => (
+                      <div key={i} className="bg-slate-200 rounded w-full" style={{ height: `${20 + (i % 4) * 20}%` }} />
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-60 space-y-4">
+                    <div className="h-5 w-40 bg-slate-200 rounded-md" />
+                    <div className="flex items-center justify-center">
+                      <div className="h-28 w-28 rounded-full border-8 border-slate-100 border-t-slate-200 animate-spin" />
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-60 space-y-3">
+                    <div className="h-5 w-36 bg-slate-200 rounded-md" />
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="flex justify-between items-center py-1">
+                        <div className="h-4 w-20 bg-slate-150 rounded" />
+                        <div className="h-4 w-12 bg-slate-200 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column Blocks */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-72 flex flex-col justify-between">
+                  <div className="h-5 w-44 bg-slate-200 rounded-md" />
+                  <div className="flex justify-center">
+                    <div className="h-28 w-28 rounded-full border-[10px] border-slate-100 flex items-center justify-center">
+                      <div className="h-4 w-10 bg-slate-200 rounded" />
+                    </div>
+                  </div>
+                  <div className="h-4 w-full bg-slate-100 rounded-md" />
+                </div>
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-60 space-y-4">
+                  <div className="h-5 w-40 bg-slate-200 rounded-md" />
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex justify-between items-center border-b border-slate-50 pb-2">
+                      <div className="space-y-1.5">
+                        <div className="h-4 w-28 bg-slate-200 rounded" />
+                        <div className="h-3 w-16 bg-slate-150 rounded" />
+                      </div>
+                      <div className="h-5 w-16 bg-slate-200 rounded-md" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -209,10 +309,12 @@ export default function Dashboard() {
   // Calculate dynamic components of health score
   const totalCashback = data?.stats.total_cashback || 0;
   const missedCashback = data?.stats.missed_cashback || 0;
+  console.log("missedCashback type:", typeof missedCashback, missedCashback);
+  const missedCashbackValue = Number(missedCashback ?? 0);
   
   // 1. Cashback Optimization (35%)
-  const cashbackOpt = totalCashback + missedCashback > 0 
-    ? (totalCashback / (totalCashback + missedCashback)) * 100 
+  const cashbackOpt = totalCashback + missedCashbackValue > 0 
+    ? (totalCashback / (totalCashback + missedCashbackValue)) * 100 
     : 85;
     
   // 2. Budget Discipline (25%)
@@ -397,8 +499,8 @@ export default function Dashboard() {
                             AI Diagnostic Insight
                           </h4>
                           <p className="text-[11px] text-slate-600 leading-normal font-semibold">
-                            {missedCashback > 0 
-                              ? `You missed ₹${missedCashback.toFixed(0)} in rewards this month. Aligning your UPI payments to the optimal cards can capture this leaked margin.` 
+                            {missedCashbackValue > 0 
+                              ? `You missed ₹${missedCashbackValue.toFixed(0)} in rewards this month. Aligning your UPI payments to the optimal cards can capture this leaked margin.` 
                               : "Amazing cashback optimization! You are capturing 100% of available cashback deals this month."}
                           </p>
                         </div>
