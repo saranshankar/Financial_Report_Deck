@@ -1,11 +1,13 @@
 import logging
 import sys
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 from .config import settings
-from .database import engine, Base
-from .api import auth, transactions, cashback, offers, insights, reconciliation
+from .database import engine, Base, get_db
+from .api import auth, transactions, cashback, offers, insights, reconciliation, accounts
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +93,7 @@ app.include_router(cashback.router, prefix="/api")
 app.include_router(offers.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(reconciliation.router, prefix="/api")
+app.include_router(accounts.router, prefix="/api")
 
 @app.get("/")
 def read_root():
@@ -99,3 +102,21 @@ def read_root():
         "status": "online",
         "version": "1.0.0"
     }
+
+@app.get("/api/health")
+def health_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "api": "online"
+        }
+    except Exception as e:
+        logger.error(f"Health check database error: {e}")
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "api": "online",
+            "reason": str(e)
+        }

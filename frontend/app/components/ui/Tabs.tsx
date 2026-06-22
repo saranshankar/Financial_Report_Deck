@@ -68,6 +68,7 @@ export function TabsTrigger({ value, className, children, ...props }: TabsTrigge
       type="button"
       role="tab"
       aria-selected={isActive}
+      suppressHydrationWarning={true}
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-semibold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 text-muted-foreground hover:text-white",
         isActive && "bg-white/10 text-white shadow-sm",

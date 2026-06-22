@@ -10,7 +10,8 @@ import {
   TrendingUp, 
   User, 
   LogOut,
-  BrainCircuit
+  BrainCircuit,
+  Link2
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { authApi } from "@/app/lib/api";
@@ -26,6 +27,7 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }: SidebarProps) {
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Connect Accounts", href: "/connect-accounts", icon: Link2 },
     { name: "Transactions", href: "/transactions", icon: Receipt },
     { name: "Cashback Rules", href: "/cashback", icon: CreditCard },
     { name: "Offers & AI Simplifier", href: "/offers", icon: Sparkles },

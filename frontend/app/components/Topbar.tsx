@@ -123,6 +123,7 @@ export default function Topbar({ user, onMenuToggle }: TopbarProps) {
                 {unreadCount > 0 && (
                   <button 
                     onClick={markAllRead}
+                    suppressHydrationWarning={true}
                     className="text-[10px] text-[#2874F0] font-bold hover:underline"
                   >
                     Mark all read
@@ -138,6 +139,7 @@ export default function Topbar({ user, onMenuToggle }: TopbarProps) {
                     >
                       <button 
                         onClick={() => removeNotification(n.id)}
+                        suppressHydrationWarning={true}
                         className="absolute right-2 top-2 text-slate-400 hover:text-slate-650"
                       >
                         <X className="h-3 w-3" />
@@ -221,6 +223,7 @@ export default function Topbar({ user, onMenuToggle }: TopbarProps) {
                     setShowUserDropdown(false);
                     handleDropdownLogout();
                   }}
+                  suppressHydrationWarning={true}
                   className="flex w-full items-center text-left px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"
                 >
                   Logout

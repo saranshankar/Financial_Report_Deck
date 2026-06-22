@@ -135,6 +135,7 @@ export default function Login() {
                 setIsRegister(!isRegister);
                 setError(null);
               }}
+              suppressHydrationWarning={true}
               className="text-primary font-bold hover:underline"
             >
               {isRegister ? "Sign In" : "Register here"}

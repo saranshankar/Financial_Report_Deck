@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Numeric, DateTime, Boolean, ForeignKey, Text, func
+from sqlalchemy import Column, String, Numeric, DateTime, Boolean, ForeignKey, Text, func, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -17,6 +17,11 @@ class User(Base):
     recommendations = relationship("Recommendation", back_populates="user", cascade="all, delete-orphan")
     insights = relationship("Insight", back_populates="user", cascade="all, delete-orphan")
     reconciliation_logs = relationship("ReconciliationLog", back_populates="user", cascade="all, delete-orphan")
+    connected_accounts = relationship("ConnectedAccount", back_populates="user", cascade="all, delete-orphan")
+    account_imports = relationship("AccountImport", back_populates="user", cascade="all, delete-orphan")
+    budgets = relationship("Budget", back_populates="user", cascade="all, delete-orphan")
+    savings_goals = relationship("SavingsGoal", back_populates="user", cascade="all, delete-orphan")
+    subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
 
 class Transaction(Base):
     __tablename__ = "transactions"
@@ -105,3 +110,66 @@ class ReconciliationLog(Base):
 
     user = relationship("User", back_populates="reconciliation_logs")
     transaction = relationship("Transaction", back_populates="reconciliation_logs")
+
+class ConnectedAccount(Base):
+    __tablename__ = "connected_accounts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    provider = Column(String(100), nullable=False)  # Google Pay, PhonePe, Paytm, Amazon Pay, Bank Account, Credit Card
+    account_name = Column(String(255), nullable=False)
+    status = Column(String(20), default="CONNECTED")  # CONNECTED, DISCONNECTED
+    last_synced = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="connected_accounts")
+
+class AccountImport(Base):
+    __tablename__ = "account_imports"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    file_name = Column(String(255), nullable=False)
+    import_date = Column(DateTime(timezone=True), server_default=func.now())
+    status = Column(String(20), default="SUCCESS")  # SUCCESS, FAILED
+    records_count = Column(Integer, default=0)
+
+    user = relationship("User", back_populates="account_imports")
+
+class Budget(Base):
+    __tablename__ = "budgets"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    month = Column(String(7), nullable=False)  # YYYY-MM
+    category = Column(String(50), nullable=False)  # Food, Shopping, etc., or * for total
+    limit_amount = Column(Numeric(12, 2), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="budgets")
+
+class SavingsGoal(Base):
+    __tablename__ = "savings_goals"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String(255), nullable=False)
+    target_amount = Column(Numeric(12, 2), nullable=False)
+    current_amount = Column(Numeric(12, 2), default=0.00)
+    status = Column(String(20), default="ACTIVE")  # ACTIVE, COMPLETED
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="savings_goals")
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String(255), nullable=False)
+    monthly_cost = Column(Numeric(12, 2), nullable=False)
+    renewal_day = Column(Integer, nullable=False)
+    status = Column(String(20), default="ACTIVE")  # ACTIVE, CANCELLED
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="subscriptions")

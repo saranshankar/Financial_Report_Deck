@@ -34,6 +34,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
+      suppressHydrationWarning={true}
       className="p-2 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-white transition-colors"
       aria-label="Toggle Theme"
     >

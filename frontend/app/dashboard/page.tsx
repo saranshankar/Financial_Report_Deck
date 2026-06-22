@@ -16,7 +16,8 @@ import {
   Plus,
   Clock,
   ShieldCheck,
-  Activity
+  Activity,
+  Link2
 } from "lucide-react";
 import { 
   PieChart, 
@@ -39,6 +40,7 @@ import { formatCurrency, formatDate, getCategoryBadgeClass } from "../lib/utils"
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import UploadModal from "../components/UploadModal";
+import ServiceOffline from "../components/ServiceOffline";
 import { Button } from "../components/ui/Button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
@@ -70,9 +72,9 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const isHealthy = await checkBackendHealth();
-      if (!isHealthy) {
-        setError("Backend server is unavailable. Please start the FastAPI server.");
+      const health = await checkBackendHealth();
+      if (health.status !== "ONLINE") {
+        setError(health.reason || "Backend server is unavailable. Please start the FastAPI server.");
         setLoading(false);
         return;
       }
@@ -111,9 +113,9 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const isHealthy = await checkBackendHealth();
-      if (!isHealthy) {
-        setError("Backend server is unavailable. Please start the FastAPI server.");
+      const health = await checkBackendHealth();
+      if (health.status !== "ONLINE") {
+        setError(health.reason || "Backend server is unavailable. Please start the FastAPI server.");
         setLoading(false);
         return;
       }
@@ -178,18 +180,7 @@ export default function Dashboard() {
 
         <main className="flex-1 p-6 space-y-6 z-10 max-w-7xl w-full mx-auto">
           {error ? (
-            <div className="bg-white border border-rose-200 rounded-2xl p-8 shadow-sm flex flex-col items-center text-center max-w-xl mx-auto my-12">
-              <div className="h-16 w-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 mb-4">
-                <AlertTriangle className="h-8 w-8" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Service Offline</h3>
-              <p className="text-sm text-slate-500 mb-6 max-w-md">
-                {error}
-              </p>
-              <Button onClick={loadData} className="bg-[#2874F0] hover:bg-[#1B4FAD] text-white font-bold">
-                Retry Connection
-              </Button>
-            </div>
+            <ServiceOffline error={error} onRetry={loadData} />
           ) : (
             <>
               {/* Header Action Row */}
@@ -204,6 +195,10 @@ export default function Dashboard() {
               <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading} className="flex items-center gap-2">
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
+              </Button>
+              <Button size="sm" onClick={() => router.push("/connect-accounts")} className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-sm font-bold border-none transition-all duration-250">
+                <Link2 className="h-4 w-4" />
+                Connect Accounts
               </Button>
               <Button size="sm" onClick={() => setIsUploadOpen(true)} className="flex items-center gap-2 bg-[#2874F0] hover:bg-[#1B4FAD] text-white">
                 <Upload className="h-4 w-4" />

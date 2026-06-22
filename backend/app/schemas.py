@@ -183,3 +183,86 @@ class OfferSimplificationRequest(BaseModel):
 class OfferSimplificationResponse(BaseModel):
     original_terms: str
     simplified_explanation: str
+
+# ConnectedAccount schemas
+class ConnectedAccountBase(BaseModel):
+    provider: str
+    account_name: str
+    status: Optional[str] = "CONNECTED"
+
+class ConnectedAccountCreate(ConnectedAccountBase):
+    pass
+
+class ConnectedAccount(ConnectedAccountBase):
+    id: UUID
+    user_id: UUID
+    last_synced: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# AccountImport schemas
+class AccountImport(BaseModel):
+    id: UUID
+    user_id: UUID
+    file_name: str
+    import_date: datetime
+    status: str
+    records_count: int
+
+    class Config:
+        from_attributes = True
+
+# Budget schemas
+class BudgetBase(BaseModel):
+    month: str
+    category: str
+    limit_amount: Decimal
+
+class BudgetCreate(BudgetBase):
+    pass
+
+class Budget(BudgetBase):
+    id: UUID
+    user_id: UUID
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# SavingsGoal schemas
+class SavingsGoalBase(BaseModel):
+    name: str
+    target_amount: Decimal
+    current_amount: Optional[Decimal] = Decimal(0.0)
+    status: Optional[str] = "ACTIVE"
+
+class SavingsGoalCreate(SavingsGoalBase):
+    pass
+
+class SavingsGoal(SavingsGoalBase):
+    id: UUID
+    user_id: UUID
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Subscription schemas
+class SubscriptionBase(BaseModel):
+    name: str
+    monthly_cost: Decimal
+    renewal_day: int
+    status: Optional[str] = "ACTIVE"
+
+class SubscriptionCreate(SubscriptionBase):
+    pass
+
+class Subscription(SubscriptionBase):
+    id: UUID
+    user_id: UUID
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

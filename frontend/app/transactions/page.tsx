@@ -36,6 +36,7 @@ import { formatCurrency, formatDate, getCategoryBadgeClass } from "../lib/utils"
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import UploadModal from "../components/UploadModal";
+import ServiceOffline from "../components/ServiceOffline";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Card, CardContent } from "../components/ui/Card";
@@ -106,9 +107,9 @@ export default function Transactions() {
     setLoading(true);
     setError(null);
     try {
-      const isHealthy = await checkBackendHealth();
-      if (!isHealthy) {
-        setError("Backend server is unavailable. Please start the FastAPI server.");
+      const health = await checkBackendHealth();
+      if (health.status !== "ONLINE") {
+        setError(health.reason || "Backend server is unavailable. Please start the FastAPI server.");
         setLoading(false);
         return;
       }
@@ -257,18 +258,7 @@ export default function Transactions() {
 
         <main className="flex-1 p-6 space-y-6 z-10 max-w-7xl w-full mx-auto">
           {error ? (
-            <div className="bg-white border border-rose-200 rounded-2xl p-8 shadow-sm flex flex-col items-center text-center max-w-xl mx-auto my-12">
-              <div className="h-16 w-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 mb-4">
-                <AlertTriangle className="h-8 w-8" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Service Offline</h3>
-              <p className="text-sm text-slate-500 mb-6 max-w-md">
-                {error}
-              </p>
-              <Button onClick={loadData} className="bg-[#2874F0] hover:bg-[#1B4FAD] text-white font-bold">
-                Retry Connection
-              </Button>
-            </div>
+            <ServiceOffline error={error} onRetry={loadData} />
           ) : (
             <>
               {/* Header Row */}
@@ -423,6 +413,7 @@ export default function Transactions() {
                         <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                           <button
                             onClick={() => handleDeleteTransaction(tx.id)}
+                            suppressHydrationWarning={true}
                             className="p-2 rounded-xl bg-rose-55 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition-colors border border-rose-100"
                             title="Delete Transaction"
                           >
